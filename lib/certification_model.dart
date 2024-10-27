@@ -45,14 +45,14 @@ final List<Certification> certifications = [
   ),
 
 
-  Certification(
-    name: 'Problem Solving Using Computational Thinking',
-    issuer: 'University of Michigan | Coursera',
-    startDate: DateTime(2021, 4),
-    endDate: DateTime(2021, 5),
-    description:
-    'Problem Solving Using Computational Thinking - University of Michigan | Coursera',
-  ),
+  // Certification(
+  //   name: 'Problem Solving Using Computational Thinking',
+  //   issuer: 'University of Michigan | Coursera',
+  //   startDate: DateTime(2021, 4),
+  //   endDate: DateTime(2021, 5),
+  //   description:
+  //   'Problem Solving Using Computational Thinking - University of Michigan | Coursera',
+  // ),
   Certification(
     name: 'MongoDB For SQL Pros',
     issuer: 'MongoDB',
