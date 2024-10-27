@@ -35,7 +35,7 @@ final List<Certification> certifications = [
     startDate: DateTime(2022, 1),
     endDate: DateTime(2022, 3),
     description:
-    'Learned about the basics of project management, Course authorized by Google and offered through Coursera.',
+        'Learned about the basics of project management, Course authorized by Google and offered through Coursera.',
   ),
   Certification(
     name: 'Google Cloud Badges',
@@ -43,22 +43,20 @@ final List<Certification> certifications = [
     startDate: DateTime(2021, 5),
     description: 'Completed 24 Quests And 12 Skill Badges+',
   ),
-
-
-  // Certification(
-  //   name: 'Problem Solving Using Computational Thinking',
-  //   issuer: 'University of Michigan | Coursera',
-  //   startDate: DateTime(2021, 4),
-  //   endDate: DateTime(2021, 5),
-  //   description:
-  //   'Problem Solving Using Computational Thinking - University of Michigan | Coursera',
-  // ),
+  Certification(
+    name: 'Problem Solving Using Computational Thinking',
+    issuer: 'University of Michigan | Coursera',
+    startDate: DateTime(2021, 4),
+    endDate: DateTime(2021, 5),
+    description:
+        'Problem Solving Using Computational Thinking - University of Michigan | Coursera',
+  ),
   Certification(
     name: 'MongoDB For SQL Pros',
     issuer: 'MongoDB',
     startDate: DateTime(2021, 2),
     endDate: DateTime(2021, 3),
     description:
-    'This course helped me to build a solid understanding of how MongoDB differs from relational databases.',
+        'This course helped me to build a solid understanding of how MongoDB differs from relational databases.',
   ),
 ];
