@@ -34,6 +34,7 @@ migrate_working_dir/
 #firebase
 /lib/firebase_options.dart
 firebase.json
+/lib/keys.dart
 
 # Symbolication related
 app.*.symbols
