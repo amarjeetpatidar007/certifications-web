@@ -1,5 +1,8 @@
+// import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:my_certifications/keys.dart';
 import 'package:my_certifications/pages/certification_list_page.dart';
 import 'package:my_certifications/pages/sign_in_page.dart';
 import 'package:my_certifications/provider/auth_provider.dart';
@@ -10,9 +13,9 @@ import 'provider/certification_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await FirebaseAppCheck.instance
+      .activate(webProvider: ReCaptchaEnterpriseProvider(CustomKeys.siteKey));
 
   runApp(MultiProvider(
     providers: [
@@ -36,6 +39,10 @@ class CertificationTrackerApp extends StatelessWidget {
       ),
       home: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
+          if (authProvider.isLoading) {
+            return const Center(
+                child: CircularProgressIndicator()); // Show loading state
+          }
           if (authProvider.isAuthenticated) {
             return ChangeNotifierProvider(
               create: (_) => CertificationProvider(authProvider.user!.uid),

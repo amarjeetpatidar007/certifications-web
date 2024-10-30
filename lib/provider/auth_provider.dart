@@ -1,23 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-
-//   <meta name="google-signin-client_id" content="109622122352-7ipadlel10slau87fjsvjajitflu7k5p.apps.googleusercontent.com.apps.googleusercontent.com">
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:my_certifications/keys.dart';
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: clientId,
-    scopes: ['email', 'profile'],
-  );
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   User? _user;
+  bool _isLoading = false;
+  String? _error;
 
   User? get user => _user;
 
   bool get isAuthenticated => _user != null;
+
+  bool get isLoading => _isLoading;
+
+  String? get error => _error;
 
   AuthProvider() {
     _auth.authStateChanges().listen((user) {
@@ -26,58 +26,63 @@ class AuthProvider extends ChangeNotifier {
     });
   }
 
-  Future<void> signInWithGoogle(BuildContext context) async {
+  Future<void> signInWithGoogle() async {
     try {
-      if (kIsWeb) {
-        GoogleAuthProvider googleProvider = GoogleAuthProvider();
-        googleProvider.addScope('email');
-        googleProvider.addScope('profile');
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
 
-        final UserCredential userCredential =
-            await _auth.signInWithPopup(googleProvider);
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser != null) {
+        final googleAuth = await googleUser.authentication;
 
-        await _updateUserData(userCredential.user!);
-      } else {
-        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-        if (googleUser == null) return;
-
-        final GoogleSignInAuthentication googleAuth =
-            await googleUser.authentication;
         final credential = GoogleAuthProvider.credential(
           accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
         );
 
-        final UserCredential userCredential =
-            await _auth.signInWithCredential(credential);
-
-        await _updateUserData(userCredential.user!);
+        final userCredential = await _auth.signInWithCredential(credential);
+        if (userCredential.user != null) {
+          await _updateUserData(userCredential.user!);
+        }
       }
     } catch (e) {
-      if (e.toString().contains('popup_closed_by_user')) {
-        debugPrint('Sign-in popup was closed by the user');
-      } else {
-        debugPrint('Error during sign in: $e');
-      }
-      rethrow;
+      _error = e.toString();
+      debugPrint('Error initiating sign in: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
   Future<void> _updateUserData(User user) async {
-    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-      'displayName': user.displayName,
-      'email': user.email,
-      'photoURL': user.photoURL,
-      'lastSignIn': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    try {
+      await _firestore.collection('users').doc(user.uid).set({
+        'displayName': user.displayName,
+        'email': user.email,
+        'photoURL': user.photoURL,
+        'lastSignIn': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Error updating user data: $e');
+    }
   }
 
   Future<void> signOut() async {
-    if (kIsWeb) {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
       await _auth.signOut();
-    } else {
-      await _googleSignIn.signOut();
-      await _auth.signOut();
+      await GoogleSignIn().signOut();
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('Error during sign out: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }
