@@ -42,7 +42,6 @@ dependencies:
   go_router:
   provider:
   url_launcher:
-  firebase_app_check: ^0.3.1+4
 
 
 

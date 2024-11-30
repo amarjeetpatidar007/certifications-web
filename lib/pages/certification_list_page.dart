@@ -5,6 +5,7 @@ import '../models/certification_model.dart';
 import '../provider/auth_provider.dart';
 import '../provider/certification_provider.dart';
 import '../utils/certifcation_card.dart';
+import 'certificate_preview_page.dart';
 
 class CertificationListPage extends StatelessWidget {
   const CertificationListPage({super.key});
@@ -26,7 +27,6 @@ class CertificationListPage extends StatelessWidget {
       showDialog(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          // Use dialogContext for dialog-specific operations
           title: const Text('Add New Certification'),
           content: SingleChildScrollView(
             child: Form(
@@ -136,8 +136,6 @@ class CertificationListPage extends StatelessWidget {
                     endDate: endDate,
                     certificateLink: certificateLink,
                   );
-
-                  // Use the provider instance we got earlier
                   certProvider.addCertification(certification);
                   Navigator.of(dialogContext).pop();
 
@@ -177,60 +175,76 @@ class CertificationListPage extends StatelessWidget {
           );
         }
 
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('My Certifications'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.share),
-                onPressed: () async {
-                  // TODO
-                },
-                tooltip: 'Share Profile',
+        return Stack(
+          children: [
+            Scaffold(
+              appBar: AppBar(
+                title: const Text('My Certifications'),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.share),
+                    onPressed: () async {
+                      // TODO
+                    },
+                    tooltip: 'Share Profile',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: () => showAddCertificationDialog(context),
+                    tooltip: 'Add New Certification',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.logout),
+                    onPressed: () => authProvider.signOut(),
+                    tooltip: 'Sign Out',
+                  ),
+                ],
               ),
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () => showAddCertificationDialog(context),
-                tooltip: 'Add New Certification',
-              ),
-              IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: () => authProvider.signOut(),
-                tooltip: 'Sign Out',
-              ),
-            ],
-          ),
-          body: SingleChildScrollView(
-            child: Center(
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 1200),
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Welcome, ${authProvider.user?.displayName}',
-                      style: Theme.of(context).textTheme.headlineMedium,
-                      textAlign: TextAlign.center,
+              body: SingleChildScrollView(
+                child: Center(
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 1200),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Welcome, ${authProvider.user?.displayName}',
+                          style: Theme.of(context).textTheme.headlineMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        Wrap(
+                          spacing: 16,
+                          runSpacing: 16,
+                          children: certProvider.certifications
+                              .map((cert) => CertificationCard(
+                                    certification: cert,
+                                    isEditable: true,
+                                    onDelete: () => certProvider
+                                        .deleteCertification(cert.id!),
+                                    onPreview: () {
+                                      if (cert.certificateLink != null) {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    IframeScreen(
+                                                        url: cert
+                                                            .certificateLink!)));
+                                      }
+                                    },
+                                  ))
+                              .toList(),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 24),
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
-                      children: certProvider.certifications
-                          .map((cert) => CertificationCard(
-                                certification: cert,
-                                isEditable: true,
-                                onDelete: () =>
-                                    certProvider.deleteCertification(cert.id!),
-                              ))
-                          .toList(),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
+            // Add this to handle the preview visibility
+          ],
         );
       },
     );

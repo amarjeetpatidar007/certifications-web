@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../models/certification_model.dart';
 
 class CertificationCard extends StatelessWidget {
   final Certification certification;
+  final bool isEditable;
+  final Future<void> Function() onDelete;
+  final Function() onPreview;
 
-  const CertificationCard(
-      {super.key,
-      required this.certification,
-      required bool isEditable,
-      required Future<void> Function() onDelete});
+  const CertificationCard({
+    super.key,
+    required this.certification,
+    required this.isEditable,
+    required this.onDelete,
+    required this.onPreview,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +49,7 @@ class CertificationCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 16),
                 child: ElevatedButton.icon(
-                  onPressed: () => _launchUrl(certification.certificateLink!),
+                  onPressed: () => onPreview(),
                   icon: const Icon(Icons.link),
                   label: const Text('View Certificate'),
                 ),
@@ -80,9 +84,4 @@ class CertificationCard extends StatelessWidget {
     );
   }
 
-  Future<void> _launchUrl(String url) async {
-    if (!await launchUrl(Uri.parse(url))) {
-      throw Exception('Could not launch $url');
-    }
-  }
 }

@@ -5,23 +5,27 @@ import '../models/certification_model.dart';
 
 class CertificationProvider extends ChangeNotifier {
   final String userId;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  List<Certification> _certifications = [];
-  bool _isLoading = false;
-  String? _error;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  List<Certification> certifications = [];
+  bool isLoading = false;
+  String? error;
+
+  // Preview-specific states
+  bool isPreviewLoading = false;
+  String? previewError;
+  String? currentPreviewUrl;
+  bool isPreviewVisible = false;
 
   CertificationProvider(this.userId) {
-    _initializeCertifications();
+    initializeCertifications();
   }
 
-  List<Certification> get certifications => _certifications;
+  List<Certification> get certificationsList => certifications;
 
-  bool get isLoading => _isLoading;
+  String? get errorMessage => error;
 
-  String? get error => _error;
-
-  void _initializeCertifications() {
-    _firestore
+  void initializeCertifications() {
+    firestore
         .collection('users')
         .doc(userId)
         .collection('certifications')
@@ -29,7 +33,7 @@ class CertificationProvider extends ChangeNotifier {
         .snapshots()
         .listen(
       (snapshot) {
-        _certifications = snapshot.docs.map((doc) {
+        certifications = snapshot.docs.map((doc) {
           final data = doc.data();
           return Certification(
             id: doc.id,
@@ -46,18 +50,18 @@ class CertificationProvider extends ChangeNotifier {
         notifyListeners();
       },
       onError: (e) {
-        _error = e.toString();
+        error = e.toString();
         notifyListeners();
       },
     );
   }
 
-  Future<void> addCertification(Certification certification) async {
+  Future addCertification(Certification certification) async {
     try {
-      _isLoading = true;
+      isLoading = true;
       notifyListeners();
 
-      await _firestore
+      await firestore
           .collection('users')
           .doc(userId)
           .collection('certifications')
@@ -72,40 +76,35 @@ class CertificationProvider extends ChangeNotifier {
         'description': certification.description,
       });
 
-      _isLoading = false;
+      isLoading = false;
       notifyListeners();
     } catch (e) {
-      _isLoading = false;
-      _error = e.toString();
+      isLoading = false;
+      error = e.toString();
       notifyListeners();
       rethrow;
     }
   }
 
-  Future<void> deleteCertification(String certificationId) async {
+  Future deleteCertification(String certificationId) async {
     try {
-      _isLoading = true;
+      isLoading = true;
       notifyListeners();
 
-      await _firestore
+      await firestore
           .collection('users')
           .doc(userId)
           .collection('certifications')
           .doc(certificationId)
           .delete();
-
-      _isLoading = false;
+    } finally {
+      isLoading = false;
       notifyListeners();
-    } catch (e) {
-      _isLoading = false;
-      _error = e.toString();
-      notifyListeners();
-      rethrow;
     }
   }
 
   void clearError() {
-    _error = null;
+    error = null;
     notifyListeners();
   }
 }
